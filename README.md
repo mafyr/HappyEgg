@@ -1,12 +1,40 @@
-# React + Vite
+# 🥚 Happy Egg
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Built with React.js + Tailwind CSS**
 
-Currently, two official plugins are available:
+A fun and casual physics-based game where you guide a happy egg as it bounces on moving tiles, avoids sharp spikes, and collects coins — all while staying alive through 3 eggy lives!
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 🎮 Features
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- 🎯 **Physics-Based Gameplay**: Gravity, jumping, falling, and collision mechanics.
+- 🔪 **Sharp Tiles**: Appear after 4 seconds — landing on one causes a loss of life and fall.
+- 💰 **Coin Collection**: Grab coins to increase your score.
+- ❤️ **Lives System and game over**: If the egg falls below the screen or touches 3 sharp tiles, it's game over.
+- 🧱 **Dynamic Tiles**: Regular and sharp tiles move continuously upward.
+- 🖥️ **Responsive Design**: Works smoothly on different screen sizes.
+
+---
+
+## 🛠️ Tech Stack
+
+- ⚛️ [React.js](https://reactjs.org/)
+- 🎨 [Tailwind CSS](https://tailwindcss.com/)
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js (v18+ recommended)
+- npm
+
+### Installation
+
+```bash
+git clone https://github.com/mafyr/HappyEgg.git
+cd HappyEgg
+npm install
+npm run dev
