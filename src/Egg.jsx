@@ -1,11 +1,22 @@
-import React, { useState, useEffect } from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
+import React, { useState, useEffect, useRef } from "react";
+import { playSound } from "./Sound";
 
 const EGG_WIDTH = 50;
 const EGG_HEIGHT = 50;
 const SCREEN_HEIGHT = window.innerHeight;
 const TILE_SCROLL_SPEED = 2;
 
-const Egg = ({ tilePositions, onCoinCollision, setGameOver, TILE_WIDTH, TILE_HEIGHT, setLives }) => {
+const Egg = ({
+  tilePositions,
+  onCoinCollision,
+  setGameOver,
+  TILE_WIDTH,
+  TILE_HEIGHT,
+  setLives,
+}) => {
+  const hasPlayedGameOverSound = useRef(false);
   const [x, setX] = useState(600);
   const [y, setY] = useState(0);
   const [rotation, setRotation] = useState(0);
@@ -19,26 +30,33 @@ const Egg = ({ tilePositions, onCoinCollision, setGameOver, TILE_WIDTH, TILE_HEI
       const eggCenterX = x + EGG_WIDTH / 2;
       const eggCenterY = y + EGG_HEIGHT / 2;
 
-      const currentTileIndex = tilePositions.findIndex(tile =>
-        eggBottom >= tile.top &&
-        eggBottom <= tile.top + TILE_HEIGHT &&
-        eggCenterX >= tile.left &&
-        eggCenterX <= tile.left + TILE_WIDTH
+      const currentTileIndex = tilePositions.findIndex(
+        (tile) =>
+          eggBottom >= tile.top &&
+          eggBottom <= tile.top + TILE_HEIGHT &&
+          eggCenterX >= tile.left &&
+          eggCenterX <= tile.left + TILE_WIDTH
       );
 
       const tile = tilePositions[currentTileIndex];
 
       if (tile && !isJumpingFromSharp) {
         if (tile.isSharp && currentTileIndex !== lastTileIndex) {
+          playSound("sharp");
           setIsJumpingFromSharp(true);
-          setVelocityY(-10); // Little jump
+          setVelocityY(-5); // Little jump
           setTimeout(() => {
             setIsJumpingFromSharp(false);
           }, 300);
-          setLives(prev => {
+          setLives((prev) => {
             if (prev > 1) return prev - 1;
             else {
+              if (!hasPlayedGameOverSound.current) {
+                playSound("gameover");
+                hasPlayedGameOverSound.current = true;
+              }
               setGameOver(true);
+
               return 0;
             }
           });
@@ -48,9 +66,9 @@ const Egg = ({ tilePositions, onCoinCollision, setGameOver, TILE_WIDTH, TILE_HEI
         }
         setLastTileIndex(currentTileIndex);
       } else {
-        setVelocityY(v => {
+        setVelocityY((v) => {
           const newVelocity = Math.min(v + 0.4, 5); // gravity reset
-          setY(prevY => prevY + newVelocity);
+          setY((prevY) => prevY + newVelocity);
           return newVelocity;
         });
         setLastTileIndex(null);
@@ -64,30 +82,45 @@ const Egg = ({ tilePositions, onCoinCollision, setGameOver, TILE_WIDTH, TILE_HEI
           const dx = eggCenterX - coinX;
           const dy = eggCenterY - coinY;
           const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < 20) onCoinCollision(tIndex, cIndex);
+          if (distance < 20) {
+            playSound("coin");
+            onCoinCollision(tIndex, cIndex);
+          }
         });
       });
 
       if (y + EGG_HEIGHT >= SCREEN_HEIGHT) {
+        if (!hasPlayedGameOverSound.current) {
+          playSound("gameover");
+          hasPlayedGameOverSound.current = true;
+        }
         setGameOver(true);
       }
     }, 16);
 
     return () => clearInterval(interval);
-  }, [x, y, tilePositions, setGameOver, onCoinCollision, setLives, isJumpingFromSharp]);
+  }, [
+    x,
+    y,
+    tilePositions,
+    setGameOver,
+    onCoinCollision,
+    setLives,
+    isJumpingFromSharp,
+  ]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'ArrowRight') {
-        setX(prev => prev + 20);
-        setRotation(prev => prev + 20);
-      } else if (e.key === 'ArrowLeft') {
-        setX(prev => prev - 20);
-        setRotation(prev => prev - 20);
+      if (e.key === "ArrowRight") {
+        setX((prev) => prev + 20);
+        setRotation((prev) => prev + 20);
+      } else if (e.key === "ArrowLeft") {
+        setX((prev) => prev - 20);
+        setRotation((prev) => prev - 20);
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   return (
