@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import Egg from "./Egg";
 import Tile from "./Tile";
@@ -5,6 +6,7 @@ import SharpTile from "./SharpTile";
 import Coin from "./Coin";
 import Score from "./Score";
 import Scorecard from "./Scorecard";
+import HomePage from "./HomePage";
 
 const TILE_COUNT = 5;
 const TILE_WIDTH = 135;
@@ -33,6 +35,15 @@ const App = () => {
   const [gameId, setGameId] = useState(0);
   const [lives, setLives] = useState(3);
   const [gameTime, setGameTime] = useState(0);
+const [homePageKey, setHomePageKey] = useState(0);
+  const [gameStarted, setGameStarted] = useState(false);
+
+    const updateHighScore = (currentScore) => {
+  const stored = Number(localStorage.getItem('highScore')) || 0;
+  if (currentScore > stored) {
+    localStorage.setItem('highScore', currentScore);
+  }
+};
 
   useEffect(() => {
     const timer = setInterval(() => setGameTime((prev) => prev + 1), 1000);
@@ -86,41 +97,67 @@ const App = () => {
     setGameId((prev) => prev + 1);
     setLives(3);
     setGameTime(0);
+      setHomePageKey((prev) => prev + 1); // Force re-render
   };
 
-  return (
-    <div className="relative min-h-screen bg-gray-100 overflow-hidden">
-      <Score score={score} lives={lives} />
-      {gameOver && <Scorecard score={score} onRestart={restartGame} />}
+   // Show homepage if game hasn't started
+  if (!gameStarted) {
+    return <HomePage onStart={() => setGameStarted(true)} />;
+  }
 
-      <Egg
-        key={gameId}
-        tilePositions={tilePositions}
-        onCoinCollision={handleCoinCollision}
-        setGameOver={setGameOver}
-        TILE_WIDTH={TILE_WIDTH}
-        TILE_HEIGHT={TILE_HEIGHT}
-        setLives={setLives}
-      />
+  const goToHome = () => {
+  setGameStarted(false);
+  setScore(0);
+  setGameOver(false);
+  setLives(3);
+  setGameTime(0);
+};
 
-      {tilePositions.map((tile, index) => (
-        <React.Fragment key={index}>
-          {tile.isSharp ? (
-            <SharpTile left={tile.left} top={tile.top} />
-          ) : (
-            <Tile left={tile.left} top={tile.top} />
-          )}
-          {tile.coins.map((coin, cIndex) => (
-            <Coin
-              key={cIndex}
-              left={tile.left + coin.offsetX}
-              top={tile.top - 12}
-            />
-          ))}
-        </React.Fragment>
-      ))}
-    </div>
-  );
+
+ return (
+  <>
+    {/* If game over, show only the Scorecard */}
+    {gameOver ? (
+      <div className="relative min-h-screen bg-yellow-100 flex items-center justify-center">
+        <Scorecard score={score} onRestart={restartGame} onGoHome={goToHome}/>
+      </div>
+    ) : (
+      // Otherwise, show the game scene
+      <div className="relative min-h-screen bg-gray-100 overflow-hidden">
+        <Score score={score} lives={lives} />
+
+        <Egg
+          key={gameId}
+          tilePositions={tilePositions}
+          onCoinCollision={handleCoinCollision}
+          setGameOver={setGameOver}
+          TILE_WIDTH={TILE_WIDTH}
+          TILE_HEIGHT={TILE_HEIGHT}
+          setLives={setLives}
+           updateHighScore={updateHighScore}
+           currentScore={score}
+        />
+
+        {tilePositions.map((tile, index) => (
+          <React.Fragment key={index}>
+            {tile.isSharp ? (
+              <SharpTile left={tile.left} top={tile.top} />
+            ) : (
+              <Tile left={tile.left} top={tile.top} />
+            )}
+            {tile.coins.map((coin, cIndex) => (
+              <Coin
+                key={cIndex}
+                left={tile.left + coin.offsetX}
+                top={tile.top - 12}
+              />
+            ))}
+          </React.Fragment>
+        ))}
+      </div>
+    )}
+  </>
+);
 };
 
 export default App;

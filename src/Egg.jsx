@@ -15,6 +15,8 @@ const Egg = ({
   TILE_WIDTH,
   TILE_HEIGHT,
   setLives,
+  updateHighScore,
+  currentScore
 }) => {
   const hasPlayedGameOverSound = useRef(false);
   const [x, setX] = useState(600);
@@ -95,6 +97,7 @@ const Egg = ({
           hasPlayedGameOverSound.current = true;
         }
         setGameOver(true);
+        updateHighScore(currentScore);
       }
     }, 16);
 

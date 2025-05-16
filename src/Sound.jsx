@@ -11,9 +11,13 @@ const sounds = {
 };
 
 export function playSound(type) {
+  const isSoundOn = localStorage.getItem("soundOn") === "true";
+  if (!isSoundOn) return;
+
   const sound = sounds[type];
   if (sound) {
-    sound.currentTime = 0; // reset to start
+    sound.currentTime = 0;
     sound.play();
   }
 }
+
