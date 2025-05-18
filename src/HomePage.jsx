@@ -16,7 +16,6 @@ const HomePage = ({ onStart }) => {
       setHighScore(Number(savedHighScore));
     }
   }, []);
-
   const toggleSound = () => {
     setSoundOn((prev) => !prev);
     localStorage.setItem('soundOn', !soundOn);

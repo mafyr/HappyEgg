@@ -16,7 +16,9 @@ const Egg = ({
   TILE_HEIGHT,
   setLives,
   updateHighScore,
-  currentScore
+  currentScore,
+  magnetActive,
+    setEggPos={setEggPos} 
 }) => {
   const hasPlayedGameOverSound = useRef(false);
   const [x, setX] = useState(600);
@@ -25,6 +27,11 @@ const Egg = ({
   const [velocityY, setVelocityY] = useState(0);
   const [lastTileIndex, setLastTileIndex] = useState(null);
   const [isJumpingFromSharp, setIsJumpingFromSharp] = useState(false);
+
+useEffect(() => {
+  setEggPos({ x, y });
+}, [x, y]);
+
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -46,7 +53,7 @@ const Egg = ({
         if (tile.isSharp && currentTileIndex !== lastTileIndex) {
           playSound("sharp");
           setIsJumpingFromSharp(true);
-          setVelocityY(-5); // Little jump
+          setVelocityY(-10); // Little jump
           setTimeout(() => {
             setIsJumpingFromSharp(false);
           }, 300);
@@ -58,7 +65,6 @@ const Egg = ({
                 hasPlayedGameOverSound.current = true;
               }
               setGameOver(true);
-
               return 0;
             }
           });
@@ -76,6 +82,9 @@ const Egg = ({
         setLastTileIndex(null);
       }
 
+      
+
+      // Coin collision detection
       tilePositions.forEach((tile, tIndex) => {
         tile.coins.forEach((coin, cIndex) => {
           if (!coin) return;
@@ -91,6 +100,7 @@ const Egg = ({
         });
       });
 
+      // Game over if egg hits bottom
       if (y + EGG_HEIGHT >= SCREEN_HEIGHT) {
         if (!hasPlayedGameOverSound.current) {
           playSound("gameover");
@@ -131,6 +141,12 @@ const Egg = ({
       className="absolute transition-transform duration-75 ease-out"
       style={{ left: x, top: y, transform: `rotate(${rotation}deg)` }}
     >
+      {magnetActive && (
+  <div className="absolute w-[60px] h-[60px] border-2 border-blue-500 rounded-full animate-pulse"
+       style={{ top: -5, left: -5 }}>
+  </div>
+)}
+
       <div className="relative w-[50px] h-[50px] rounded-full bg-gradient-to-r from-orange-500 to-green-500 shadow-md">
         <div className="absolute w-[7px] h-[7px] bg-black rounded-full top-[30%] left-[25%]"></div>
         <div className="absolute w-[7px] h-[7px] bg-black rounded-full top-[30%] right-[25%]"></div>
