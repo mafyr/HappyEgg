@@ -4,7 +4,12 @@ import { playSound } from "./Sound";
 
 const MAGNET_DURATION = 7000; // 7 seconds
 
-const Magnet = ({ eggPos, tilePositions, setMagnetActive, setTilePositions }) => {
+const Magnet = ({
+  eggPos,
+  tilePositions,
+  setMagnetActive,
+  setTilePositions,
+}) => {
   useEffect(() => {
     if (!eggPos) return;
 

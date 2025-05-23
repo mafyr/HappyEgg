@@ -8,23 +8,26 @@ import Scorecard from "./Scorecard";
 import HomePage from "./HomePage";
 import Magnet from "./Magnet";
 
-const TILE_COUNT = 5;
+const SCREEN_HEIGHT = window.innerHeight;
+const TILE_COUNT = Math.floor(SCREEN_HEIGHT / 100); // More tiles on mobile
 const TILE_WIDTH = 135;
 const TILE_HEIGHT = 20;
 const SCREEN_WIDTH = window.innerWidth;
-const SCREEN_HEIGHT = window.innerHeight;
 
 const getInitialPositions = () => {
   const positions = [];
   for (let i = 0; i < TILE_COUNT; i++) {
-    const left = Math.floor(Math.random() * (SCREEN_WIDTH - TILE_WIDTH - 40)) + 20;
-    const top = SCREEN_HEIGHT - i * 120;
+    const left =
+      Math.floor(Math.random() * (SCREEN_WIDTH - TILE_WIDTH - 40)) + 20;
+    const top = SCREEN_HEIGHT - i * 80;
     const coins = Array.from({ length: Math.floor(Math.random() * 4) }, () => ({
       offsetX: Math.random() * (TILE_WIDTH - 12),
     }));
     const isSharp = false;
     const isMagnet = Math.random() < 0.15;
-    const magnet = isMagnet ? { offsetX: Math.random() * (TILE_WIDTH - 20) } : null;
+    const magnet = isMagnet
+      ? { offsetX: Math.random() * (TILE_WIDTH - 20) }
+      : null;
     positions.push({ left, top, coins, isSharp, magnet });
   }
   return positions;
@@ -63,7 +66,8 @@ const App = () => {
 
         const newTiles = [];
         while (updatedTiles.length + newTiles.length < TILE_COUNT) {
-          const newLeft = Math.floor(Math.random() * (SCREEN_WIDTH - TILE_WIDTH - 40)) + 20;
+          const newLeft =
+            Math.floor(Math.random() * (SCREEN_WIDTH - TILE_WIDTH - 40)) + 20;
           const newTop = SCREEN_HEIGHT;
           const coins = Array.from(
             { length: Math.floor(Math.random() * 4) },
@@ -71,7 +75,9 @@ const App = () => {
           );
           const isSharp = gameTime >= 4 ? Math.random() < 0.3 : false;
           const isMagnet = Math.random() < 0.15;
-          const magnet = isMagnet ? { offsetX: Math.random() * (TILE_WIDTH - 20) } : null;
+          const magnet = isMagnet
+            ? { offsetX: Math.random() * (TILE_WIDTH - 20) }
+            : null;
           newTiles.push({ left: newLeft, top: newTop, coins, isSharp, magnet });
         }
         return [...updatedTiles, ...newTiles];
@@ -80,24 +86,23 @@ const App = () => {
     return () => clearInterval(interval);
   }, [gameTime]);
 
-useEffect(() => {
-  if (!magnetActive) return;
-  setTilePositions((prev) => {
-    let totalCoinsCollected = 0;
-    const updated = prev.map((tile) => {
-      if (tile.coins.length > 0) {
-        totalCoinsCollected += tile.coins.length;
-        return { ...tile, coins: [] }; // Only clear coins
+  useEffect(() => {
+    if (!magnetActive) return;
+    setTilePositions((prev) => {
+      let totalCoinsCollected = 0;
+      const updated = prev.map((tile) => {
+        if (tile.coins.length > 0) {
+          totalCoinsCollected += tile.coins.length;
+          return { ...tile, coins: [] }; // Only clear coins
+        }
+        return tile;
+      });
+      if (totalCoinsCollected > 0) {
+        setScore((prev) => prev + totalCoinsCollected * 10);
       }
-      return tile;
+      return updated;
     });
-    if (totalCoinsCollected > 0) {
-      setScore((prev) => prev + totalCoinsCollected * 10);
-    }
-    return updated;
-  });
-}, [magnetActive]);
-
+  }, [magnetActive]);
 
   const handleCoinCollision = (tileIndex, coinIndex) => {
     setTilePositions((prev) => {
@@ -135,8 +140,13 @@ useEffect(() => {
   return (
     <>
       {gameOver ? (
-        <div className="relative min-h-screen bg-yellow-100 flex items-center justify-center">
-          <Scorecard score={score} onRestart={restartGame} onGoHome={goToHome} />
+       <div className="relative min-h-screen w-screen bg-gray-100 overflow-hidden">
+
+          <Scorecard
+            score={score}
+            onRestart={restartGame}
+            onGoHome={goToHome}
+          />
         </div>
       ) : (
         <div className="relative min-h-screen bg-gray-100 overflow-hidden">
@@ -153,35 +163,44 @@ useEffect(() => {
             updateHighScore={updateHighScore}
             currentScore={score}
             setEggPos={setEggPos}
-              magnetActive={magnetActive}
+            magnetActive={magnetActive}
           />
 
-    {tilePositions.map((tile, index) =>
-  tile.coins.map((coin, cIndex) => (
-    <div
-      key={`coin-${index}-${cIndex}`}
-      className="absolute w-[14px] h-[14px] bg-yellow-400 rounded-full shadow-md border border-yellow-600"
-      style={{
-        top: tile.top - 16,
-        left: tile.left + coin.offsetX + 6,
-        transition: magnetActive ? 'all 0.3s ease-out' : 'none',
-        transform: magnetActive
-          ? `translate(${eggPos.x - (tile.left + coin.offsetX + 6)}px, ${eggPos.y - (tile.top - 16)}px)`
-          : 'none',
-      }}
-    />
-  ))
-)}
+          {tilePositions.map((tile, index) =>
+            tile.coins.map((coin, cIndex) => (
+              <div
+                key={`coin-${index}-${cIndex}`}
+                className="absolute w-[14px] h-[14px] bg-yellow-400 rounded-full shadow-md border border-yellow-600"
+                style={{
+                  top: tile.top - 16,
+                  left: tile.left + coin.offsetX + 6,
+                  transition: magnetActive ? "all 0.3s ease-out" : "none",
+                  transform: magnetActive
+                    ? `translate(${
+                        eggPos.x - (tile.left + coin.offsetX + 6)
+                      }px, ${eggPos.y - (tile.top - 16)}px)`
+                    : "none",
+                }}
+              />
+            ))
+          )}
 
-{tilePositions.map((tile, index) =>
-  tile.isSharp ? (
-    <SharpTile key={`tile-${index}`} left={tile.left} top={tile.top} />
-  ) : (
-    <Tile key={`tile-${index}`} left={tile.left} top={tile.top} isSharp={false} />
-  )
-)}
-
-
+          {tilePositions.map((tile, index) =>
+            tile.isSharp ? (
+              <SharpTile
+                key={`tile-${index}`}
+                left={tile.left}
+                top={tile.top}
+              />
+            ) : (
+              <Tile
+                key={`tile-${index}`}
+                left={tile.left}
+                top={tile.top}
+                isSharp={false}
+              />
+            )
+          )}
 
           {/* Single active logic handler for Magnet */}
           <Magnet
