@@ -135,43 +135,43 @@ const Egg = ({
   }, []);
 
   useEffect(() => {
-  let startX = null;
+    let startX = null;
 
-  const handleTouchStart = (e) => {
-    if (!e.touches || e.touches.length === 0) return;
-    startX = e.touches[0].clientX;
-  };
+    const handleTouchStart = (e) => {
+      if (!e.touches || e.touches.length === 0) return;
+      startX = e.touches[0].clientX;
+    };
 
-  const handleTouchEnd = (e) => {
-    if (startX === null) return;
+    const handleTouchEnd = (e) => {
+      if (startX === null) return;
 
-    const endX = e.changedTouches[0].clientX;
-    const diff = endX - startX;
+      const endX = e.changedTouches[0].clientX;
+      const diff = endX - startX;
 
-    if (Math.abs(diff) > 30) {
-      // Threshold to avoid accidental swipes
-      if (diff > 0) {
-        // Swipe right
-        setX((prev) => Math.min(window.innerWidth - EGG_WIDTH, prev + 20));
-        setRotation((prev) => prev + 20);
-      } else {
-        // Swipe left
-        setX((prev) => Math.max(0, prev - 20));
-        setRotation((prev) => prev - 20);
+      if (Math.abs(diff) > 30) {
+        // Threshold to avoid accidental swipes
+        if (diff > 0) {
+          // Swipe right
+          setX((prev) => Math.min(window.innerWidth - EGG_WIDTH, prev + 40));
+          setRotation((prev) => prev + 40);
+        } else {
+          // Swipe left
+          setX((prev) => Math.max(0, prev - 40));
+          setRotation((prev) => prev - 40);
+        }
       }
-    }
 
-    startX = null;
-  };
+      startX = null;
+    };
 
-  window.addEventListener("touchstart", handleTouchStart, { passive: true });
-  window.addEventListener("touchend", handleTouchEnd, { passive: true });
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd, { passive: true });
 
-  return () => {
-    window.removeEventListener("touchstart", handleTouchStart);
-    window.removeEventListener("touchend", handleTouchEnd);
-  };
-}, []);
+    return () => {
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, []);
 
   return (
     <div

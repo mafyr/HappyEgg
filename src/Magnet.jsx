@@ -41,7 +41,6 @@ const Magnet = ({
     });
   }, [eggPos]);
 
-  // ✅ Make sure to return the magnets' JSX
   return (
     <>
       {tilePositions.map((tile, index) => {
@@ -49,7 +48,7 @@ const Magnet = ({
         return (
           <div
             key={index}
-            className="absolute w-[25px] h-[25px] bg-purple-600 rounded-full shadow-lg"
+            className="absolute w-[5vw] h-[5vw] max-w-[20px] max-h-[20px] rounded-full shadow-lg"
             style={{
               left: tile.left + tile.magnet.offsetX,
               top: tile.top - 20,

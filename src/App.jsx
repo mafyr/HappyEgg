@@ -140,8 +140,7 @@ const App = () => {
   return (
     <>
       {gameOver ? (
-       <div className="relative min-h-screen w-screen bg-gray-100 overflow-hidden">
-
+        <div className="relative min-h-screen w-screen bg-gray-100 overflow-hidden">
           <Scorecard
             score={score}
             onRestart={restartGame}
