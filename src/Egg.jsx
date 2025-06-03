@@ -1,12 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useRef } from "react";
 import { playSound } from "./Sound";
 
 const EGG_WIDTH = 50;
 const EGG_HEIGHT = 50;
 const SCREEN_HEIGHT = window.innerHeight;
-const TILE_SCROLL_SPEED = 2;
 
 const Egg = ({
   tilePositions,
@@ -18,7 +16,9 @@ const Egg = ({
   updateHighScore,
   currentScore,
   magnetActive,
-  setEggPos = { setEggPos },
+  setEggPos,
+  updateTilePositions,
+  gameTime,
 }) => {
   const hasPlayedGameOverSound = useRef(false);
   const [x, setX] = useState(600);
@@ -38,13 +38,15 @@ const Egg = ({
       const eggCenterX = x + EGG_WIDTH / 2;
       const eggCenterY = y + EGG_HEIGHT / 2;
 
-      const currentTileIndex = tilePositions.findIndex(
-        (tile) =>
-          eggBottom >= tile.top &&
-          eggBottom <= tile.top + TILE_HEIGHT &&
-          eggCenterX >= tile.left &&
-          eggCenterX <= tile.left + TILE_WIDTH
-      );
+      const currentTileIndex = tilePositions.findIndex((tile) => {
+        const tileBottom = tile.top + TILE_HEIGHT;
+        const overlapY =
+          eggBottom >= tile.top - 10 && eggBottom <= tileBottom + 10;
+        const overlapX =
+          eggCenterX >= tile.left - 5 &&
+          eggCenterX <= tile.left + TILE_WIDTH + 5;
+        return overlapX && overlapY;
+      });
 
       const tile = tilePositions[currentTileIndex];
 
@@ -52,10 +54,9 @@ const Egg = ({
         if (tile.isSharp && currentTileIndex !== lastTileIndex) {
           playSound("sharp");
           setIsJumpingFromSharp(true);
-          setVelocityY(-10); // Little jump
-          setTimeout(() => {
-            setIsJumpingFromSharp(false);
-          }, 300);
+          setVelocityY(-10);
+          setTimeout(() => setIsJumpingFromSharp(false), 300);
+
           setLives((prev) => {
             if (prev > 1) return prev - 1;
             else {
@@ -68,16 +69,25 @@ const Egg = ({
             }
           });
         } else {
-          setY(tile.top - EGG_HEIGHT - TILE_SCROLL_SPEED);
+          setY(tile.top - EGG_HEIGHT);
           setVelocityY(0);
         }
         setLastTileIndex(currentTileIndex);
       } else {
-        setVelocityY((v) => {
-          const newVelocity = Math.min(v + 0.4, 5); // gravity reset
-          setY((prevY) => prevY + newVelocity);
-          return newVelocity;
-        });
+        const baseGravity = 0.05; // even slower start
+        const maxGravity = 0.3; // gentle max gravity
+        const scalingFactor = 0.0005; // much slower ramp-up
+
+        const gravity =
+          baseGravity +
+          (Math.log(1 + gameTime * scalingFactor) / Math.log(10)) *
+            (maxGravity - baseGravity);
+
+        const maxVelocity = 8; // optional: slightly lower for better control
+        const newVelocity = Math.min(velocityY + gravity, maxVelocity);
+
+        setVelocityY(newVelocity);
+        setY((prevY) => prevY + newVelocity);
         setLastTileIndex(null);
       }
 
@@ -86,18 +96,62 @@ const Egg = ({
         tile.coins.forEach((coin, cIndex) => {
           if (!coin) return;
           const coinX = tile.left + coin.offsetX + 6;
-          const coinY = tile.top - 6;
+          const coinY = tile.top - 16;
           const dx = eggCenterX - coinX;
           const dy = eggCenterY - coinY;
           const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < 20) {
+
+          if (magnetActive) {
+            const pullStrength = 0.15; // Smaller value for smoother movement
+            const thresholdDistance = 120;
+
+            if (distance < thresholdDistance) {
+              const moveX = dx * pullStrength;
+              const moveY = dy * pullStrength;
+
+              const updatedTilePositions = [...tilePositions];
+              const updatedTile = { ...updatedTilePositions[tIndex] };
+              const updatedCoins = [...updatedTile.coins];
+
+              const originalCoin = updatedCoins[cIndex];
+              if (!originalCoin) return;
+
+              const newOffsetX = originalCoin.offsetX + moveX;
+              const newOffsetY = (originalCoin.magnetOffsetY || 0) + moveY;
+
+              updatedCoins[cIndex] = {
+                ...originalCoin,
+                offsetX: newOffsetX,
+                magnetOffsetY: newOffsetY,
+              };
+
+              updatedTile.coins = updatedCoins;
+              updatedTilePositions[tIndex] = updatedTile;
+
+              updateTilePositions(updatedTilePositions);
+
+              const newCoinX = tile.left + tile.coins[cIndex].offsetX + 6;
+              const newCoinY = tile.top - 16 + tile.coins[cIndex].magnetOffsetY;
+
+              const newDist = Math.sqrt(
+                (eggCenterX - newCoinX) ** 2 + (eggCenterY - newCoinY) ** 2
+              );
+
+              if (newDist < 100) {
+                playSound("coin");
+                onCoinCollision(tIndex, cIndex);
+                const newTilePositions = [...tilePositions];
+                newTilePositions[tIndex].coins[cIndex] = null;
+                updateTilePositions(newTilePositions);
+              }
+            }
+          } else if (distance < 15) {
             playSound("coin");
             onCoinCollision(tIndex, cIndex);
           }
         });
       });
 
-      // Game over if egg hits bottom
       if (y + EGG_HEIGHT >= SCREEN_HEIGHT) {
         if (!hasPlayedGameOverSound.current) {
           playSound("gameover");
@@ -106,7 +160,7 @@ const Egg = ({
         setGameOver(true);
         updateHighScore(currentScore);
       }
-    }, 16);
+    }, 3);
 
     return () => clearInterval(interval);
   }, [
@@ -129,38 +183,29 @@ const Egg = ({
         setRotation((prev) => prev - 20);
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   useEffect(() => {
     let startX = null;
-
     const handleTouchStart = (e) => {
-      if (!e.touches || e.touches.length === 0) return;
-      startX = e.touches[0].clientX;
+      if (e.touches?.length) startX = e.touches[0].clientX;
     };
 
     const handleTouchEnd = (e) => {
       if (startX === null) return;
-
       const endX = e.changedTouches[0].clientX;
       const diff = endX - startX;
-
       if (Math.abs(diff) > 30) {
-        // Threshold to avoid accidental swipes
         if (diff > 0) {
-          // Swipe right
-          setX((prev) => Math.min(window.innerWidth - EGG_WIDTH, prev + 40));
-          setRotation((prev) => prev + 40);
+          setX((prev) => Math.min(window.innerWidth - EGG_WIDTH, prev + 60));
+          setRotation((prev) => prev + 60);
         } else {
-          // Swipe left
-          setX((prev) => Math.max(0, prev - 40));
-          setRotation((prev) => prev - 40);
+          setX((prev) => Math.max(0, prev - 60));
+          setRotation((prev) => prev - 60);
         }
       }
-
       startX = null;
     };
 
@@ -177,8 +222,8 @@ const Egg = ({
     <div
       className="absolute transition-transform duration-75 ease-out"
       style={{
-        left: Math.min(Math.max(x, 0), window.innerWidth - EGG_WIDTH),
-        top: Math.min(y, window.innerHeight - EGG_HEIGHT),
+        left: x,
+        top: y,
         transform: `rotate(${rotation}deg)`,
       }}
     >

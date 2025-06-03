@@ -9,9 +9,9 @@ import HomePage from "./HomePage";
 import Magnet from "./Magnet";
 
 const SCREEN_HEIGHT = window.innerHeight;
-const TILE_COUNT = Math.floor(SCREEN_HEIGHT / 100); // More tiles on mobile
-const TILE_WIDTH = 135;
-const TILE_HEIGHT = 20;
+const TILE_COUNT = Math.floor(SCREEN_HEIGHT / 80); // More tiles on mobile
+const TILE_WIDTH = Math.min(window.innerWidth * 0.2, 135);
+const TILE_HEIGHT = Math.min(window.innerHeight * 0.035, 30);
 const SCREEN_WIDTH = window.innerWidth;
 
 const getInitialPositions = () => {
@@ -24,7 +24,7 @@ const getInitialPositions = () => {
       offsetX: Math.random() * (TILE_WIDTH - 12),
     }));
     const isSharp = false;
-    const isMagnet = Math.random() < 0.15;
+    const isMagnet = Math.random() < 0.11;
     const magnet = isMagnet
       ? { offsetX: Math.random() * (TILE_WIDTH - 20) }
       : null;
@@ -43,7 +43,12 @@ const App = () => {
   const [homePageKey, setHomePageKey] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [magnetActive, setMagnetActive] = useState(false);
+  const [pulledCoins, setPulledCoins] = useState([]);
   const [eggPos, setEggPos] = useState({ x: 600, y: 0 });
+
+  const baseSpeed = 2;
+  const tileSpeed =
+    gameTime < 5 ? baseSpeed : baseSpeed + Math.min((gameTime - 5) * 0.1, 10);
 
   const updateHighScore = (currentScore) => {
     const stored = Number(localStorage.getItem("highScore")) || 0;
@@ -61,7 +66,7 @@ const App = () => {
     const interval = setInterval(() => {
       setTilePositions((prev) => {
         const updatedTiles = prev
-          .map((tile) => ({ ...tile, top: tile.top - 2 }))
+          .map((tile) => ({ ...tile, top: tile.top - tileSpeed }))
           .filter((tile) => tile.top + TILE_HEIGHT > 0);
 
         const newTiles = [];
@@ -84,35 +89,25 @@ const App = () => {
       });
     }, 30);
     return () => clearInterval(interval);
-  }, [gameTime]);
-
-  useEffect(() => {
-    if (!magnetActive) return;
-    setTilePositions((prev) => {
-      let totalCoinsCollected = 0;
-      const updated = prev.map((tile) => {
-        if (tile.coins.length > 0) {
-          totalCoinsCollected += tile.coins.length;
-          return { ...tile, coins: [] }; // Only clear coins
-        }
-        return tile;
-      });
-      if (totalCoinsCollected > 0) {
-        setScore((prev) => prev + totalCoinsCollected * 10);
-      }
-      return updated;
-    });
-  }, [magnetActive]);
+  }, [gameTime, tileSpeed]);
 
   const handleCoinCollision = (tileIndex, coinIndex) => {
     setTilePositions((prev) => {
       const updated = [...prev];
       const tile = { ...updated[tileIndex] };
-      tile.coins.splice(coinIndex, 1);
+
+      // Check if the tile or coin exists
+      if (!tile.coins || !tile.coins[coinIndex]) return prev;
+
+      tile.coins.splice(coinIndex, 1); // Remove the coin
       updated[tileIndex] = tile;
       return updated;
     });
     setScore((prev) => prev + 10);
+  };
+
+  const updateTilePositions = (newTilePositions) => {
+    setTilePositions(newTilePositions);
   };
 
   const restartGame = () => {
@@ -163,25 +158,27 @@ const App = () => {
             currentScore={score}
             setEggPos={setEggPos}
             magnetActive={magnetActive}
+            tileSpeed={tileSpeed}
+            setTilePositions={setTilePositions}
+            updateTilePositions={updateTilePositions}
+            gameTime={gameTime}
           />
 
           {tilePositions.map((tile, index) =>
-            tile.coins.map((coin, cIndex) => (
-              <div
-                key={`coin-${index}-${cIndex}`}
-                className="absolute w-[14px] h-[14px] bg-yellow-400 rounded-full shadow-md border border-yellow-600"
-                style={{
-                  top: tile.top - 16,
-                  left: tile.left + coin.offsetX + 6,
-                  transition: magnetActive ? "all 0.3s ease-out" : "none",
-                  transform: magnetActive
-                    ? `translate(${
-                        eggPos.x - (tile.left + coin.offsetX + 6)
-                      }px, ${eggPos.y - (tile.top - 16)}px)`
-                    : "none",
-                }}
-              />
-            ))
+            tile.coins.map(
+              (coin, cIndex) =>
+                coin && (
+                  <div
+                    key={`coin-${index}-${cIndex}`}
+                    className="absolute w-[14px] h-[14px] bg-yellow-400 rounded-full shadow-md border border-yellow-600"
+                    style={{
+                      top: tile.top - 16 + (coin.magnetOffsetY || 0),
+                      left: tile.left + coin.offsetX + 6,
+                      // transition: magnetActive ? "all 0.4s ease-in" : "none",
+                    }}
+                  />
+                )
+            )
           )}
 
           {tilePositions.map((tile, index) =>

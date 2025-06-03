@@ -18,5 +18,6 @@ export function playSound(type) {
   if (sound) {
     sound.currentTime = 0;
     sound.play();
+    sound.play().catch(() => {});
   }
 }
