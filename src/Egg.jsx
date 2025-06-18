@@ -39,7 +39,7 @@ const Egg = ({
     const interval = setInterval(() => {
       setBlink(true);
       setTimeout(() => setBlink(false), 200);
-    }, 5000);
+    }, 6000);
     return () => clearInterval(interval);
   }, []);
 
@@ -110,7 +110,7 @@ const Egg = ({
 
           if (magnetActive) {
             const pullStrength = 0.15;
-            const thresholdDistance = 120;
+            const thresholdDistance = 200;
 
             if (distance < thresholdDistance) {
               const moveX = dx * pullStrength;
@@ -227,11 +227,14 @@ const Egg = ({
 
   return (
     <div
-      className="absolute transition-transform duration-75 ease-out"
+      className="absolute transition-transform duration-80 ease-out"
       style={{ left: x, top: y, transform: `rotate(${rotation}deg)` }}
     >
       {magnetActive && (
-        <div className="absolute w-[15vw] h-[15vw] max-w-[60px] max-h-[60px] border-2 border-blue-500 rounded-full animate-pulse" style={{ top: -5, left: -5 }} />
+        <div
+          className="absolute w-[15vw] h-[15vw] max-w-[60px] max-h-[60px] border-2 border-blue-500 rounded-full animate-pulse"
+          style={{ top: -5, left: -5 }}
+        />
       )}
 
       <motion.div
@@ -242,42 +245,50 @@ const Egg = ({
                    shadow-xl border-[1px] border-yellow-500"
       >
         {/* Glossy Highlight */}
-        <div className="absolute top-1 left-1 w-[50%] h-[40%] 
-                        bg-white opacity-20 rounded-full blur-sm" />
+        <div
+          className="absolute top-1 left-1 w-[50%] h-[40%] 
+                        bg-white opacity-20 rounded-full blur-sm"
+        />
 
         {/* Inner Glow */}
-        <div className="absolute inset-0 rounded-full 
+        <div
+          className="absolute inset-0 rounded-full 
                         bg-gradient-radial from-transparent via-white/20 to-transparent 
-                        opacity-30" />
+                        opacity-30"
+        />
 
         {/* Eyes */}
         <div
           className={`absolute w-[1.5vw] h-[1.5vw] max-w-[7px] max-h-[7px] bg-black rounded-full 
-                      top-[30%] left-[25%] ${blink ? "scale-y-[0.1]" : ""} transition-all duration-200`}
+                      top-[30%] left-[25%] ${
+                        blink ? "scale-y-[0.1]" : ""
+                      } transition-all duration-200`}
         />
         <div
           className={`absolute w-[1.5vw] h-[1.5vw] max-w-[7px] max-h-[7px] bg-black rounded-full 
-                      top-[30%] right-[25%] ${blink ? "scale-y-[0.1]" : ""} transition-all duration-200`}
+                      top-[30%] right-[25%] ${
+                        blink ? "scale-y-[0.1]" : ""
+                      } transition-all duration-200`}
         />
 
         {/* Smile */}
-        <div className="absolute w-[4vw] h-[3vw] max-w-[20px] max-h-[15px] 
+        <div
+          className="absolute w-[4vw] h-[3vw] max-w-[20px] max-h-[15px] 
                         border-b-[2.5px] border-black rounded-b-full 
-                        bottom-[25%] left-1/2 transform -translate-x-1/2" />
+                        bottom-[25%] left-1/2 transform -translate-x-1/2"
+        />
 
         {/* Crack Line */}
-  {lives <= 1 && (
-  <>
-    {/* Central jagged crack */}
-    <div className="absolute w-[2px] h-[8%] bg-black top-[35%] left-[50%] rotate-[15deg]" />
-    <div className="absolute w-[2px] h-[8%] bg-black top-[40%] left-[52%] rotate-[-15deg]" />
-    <div className="absolute w-[2px] h-[8%] bg-black top-[45%] left-[50%] rotate-[15deg]" />
-    <div className="absolute w-[2px] h-[8%] bg-black top-[50%] left-[52%] rotate-[-15deg]" />
-    <div className="absolute w-[2px] h-[8%] bg-black top-[55%] left-[50%] rotate-[10deg]" />
-  </>
-)}
-
-
+        {lives <= 1 && (
+          <>
+            {/* Central jagged crack */}
+            <div className="absolute w-[2px] h-[8%] bg-black top-[35%] left-[50%] rotate-[15deg]" />
+            <div className="absolute w-[2px] h-[8%] bg-black top-[40%] left-[52%] rotate-[-15deg]" />
+            <div className="absolute w-[2px] h-[8%] bg-black top-[45%] left-[50%] rotate-[15deg]" />
+            <div className="absolute w-[2px] h-[8%] bg-black top-[50%] left-[52%] rotate-[-15deg]" />
+            <div className="absolute w-[2px] h-[8%] bg-black top-[55%] left-[50%] rotate-[10deg]" />
+          </>
+        )}
       </motion.div>
     </div>
   );

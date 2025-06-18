@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { FaPlay, FaVolumeUp, FaVolumeMute, FaTrophy } from "react-icons/fa";
 
 const HomePage = ({ onStart }) => {
   const [soundOn, setSoundOn] = useState(true);
@@ -9,40 +11,70 @@ const HomePage = ({ onStart }) => {
     if (soundPref !== null) {
       setSoundOn(soundPref === "true");
     }
-
-    // Load high score from localStorage
     const savedHighScore = localStorage.getItem("highScore");
     if (savedHighScore) {
       setHighScore(Number(savedHighScore));
     }
   }, []);
+
   const toggleSound = () => {
-    setSoundOn((prev) => !prev);
-    localStorage.setItem("soundOn", !soundOn);
+    setSoundOn((prev) => {
+      localStorage.setItem("soundOn", !prev);
+      return !prev;
+    });
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen px-4 bg-gradient-to-b from-yellow-100 to-yellow-300 text-center">
-      <h1 className="text-[8vw] sm:text-5xl font-bold mb-6 text-orange-700 drop-shadow-md">
-        Welcome to Happy Egg
-      </h1>
+    <div className="relative w-screen h-screen bg-gradient-to-br from-green-100 to-yellow-200 overflow-hidden flex items-center justify-center">
+      <div className="absolute left-6 top-1/4 flex flex-col gap-4 z-10">
+        <motion.button
+          whileTap={{ scale: 0.85 }}
+          onClick={onStart}
+          className="bg-yellow-400 hover:bg-yellow-500 cursor-pointer w-14 h-14 rounded-full shadow-md flex items-center justify-center text-white text-2xl"
+        >
+          <FaPlay />
+        </motion.button>
 
-      <button
-        onClick={onStart}
-        className="bg-green-500 hover:bg-green-600 cursor-pointer text-white font-bold py-3 px-8 text-[4vw] sm:text-base rounded mb-4 shadow-md transition duration-300"
-      >
-        Start Game
-      </button>
+        <motion.button
+          whileTap={{ scale: 0.85 }}
+          onClick={toggleSound}
+          className="bg-yellow-400 hover:bg-yellow-500 cursor-pointer w-14 h-14 rounded-full shadow-md flex items-center justify-center text-white text-2xl"
+        >
+          {soundOn ? <FaVolumeUp /> : <FaVolumeMute />}
+        </motion.button>
 
-      <button
-        onClick={toggleSound}
-        className="bg-blue-500 hover:bg-blue-600 cursor-pointer text-white font-semibold py-2 px-6 text-[3.5vw] sm:text-base rounded mb-4 shadow-md transition duration-300"
-      >
-        {soundOn ? "🔊 Sound: ON" : "🔇 Sound: OFF"}
-      </button>
+        <motion.div
+          whileTap={{ scale: 0.95 }}
+          className="bg-yellow-400 cursor-default w-14 h-14 rounded-full shadow-md flex items-center justify-center text-white text-xl relative"
+        >
+          <FaTrophy />
+          <span className="absolute top-full mt-1 text-xl font-bold text-orange-700">
+            {highScore}
+          </span>
+        </motion.div>
+      </div>
 
-      <div className="text-[4vw] sm:text-xl font-semibold text-gray-700">
-        🏆 Highest Score: <span className="text-black">{highScore}</span>
+      {/* Title & Image */}
+      <div className="flex flex-col items-center justify-center text-center space-y-8">
+        <motion.div
+          initial={{ scale: 0, rotate: -15 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 100, damping: 8 }}
+          className="flex items-center justify-center space-x-4"
+        >
+          <span className="text-6xl sm:text-7xl font-bold text-orange-600 drop-shadow-xl">
+            Happy Egg
+          </span>
+          <img
+            src={"happy_egg.png"}
+            alt="Happy Egg"
+            className="w-[55px] h-[55px] sm:w-[80px] sm:h-[80px] rounded-full shadow-lg"
+          />
+        </motion.div>
+
+        <div className="font-bold text-orange-600 text-xl sm:text-2xl">
+          ( DESKTOP VERSION ONLY )
+        </div>
       </div>
     </div>
   );

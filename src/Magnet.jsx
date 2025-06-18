@@ -2,7 +2,7 @@
 import React, { useEffect } from "react";
 import { playSound } from "./Sound";
 
-const MAGNET_DURATION = 9000; // 9 seconds
+const MAGNET_DURATION = 7000; // 7 seconds
 
 const Magnet = ({
   eggPos,
