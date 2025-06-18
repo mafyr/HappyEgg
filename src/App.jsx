@@ -9,7 +9,7 @@ import HomePage from "./HomePage";
 import Magnet from "./Magnet";
 
 const SCREEN_HEIGHT = window.innerHeight;
-const TILE_COUNT = Math.floor(SCREEN_HEIGHT / 80); // More tiles on mobile
+const TILE_COUNT = Math.floor(SCREEN_HEIGHT / 60); // More tiles on mobile
 const TILE_WIDTH = Math.min(window.innerWidth * 0.2, 135);
 const TILE_HEIGHT = Math.min(window.innerHeight * 0.035, 30);
 const SCREEN_WIDTH = window.innerWidth;
@@ -24,7 +24,7 @@ const getInitialPositions = () => {
       offsetX: Math.random() * (TILE_WIDTH - 12),
     }));
     const isSharp = false;
-    const isMagnet = Math.random() < 0.11;
+    const isMagnet = Math.random() < 0.05; // 5% percent chance
     const magnet = isMagnet
       ? { offsetX: Math.random() * (TILE_WIDTH - 20) }
       : null;
@@ -79,7 +79,7 @@ const App = () => {
             () => ({ offsetX: Math.random() * (TILE_WIDTH - 12) })
           );
           const isSharp = gameTime >= 4 ? Math.random() < 0.3 : false;
-          const isMagnet = Math.random() < 0.15;
+          const isMagnet = gameTime > 10 ? Math.random() < 0.06 : false; // 6 percent chance
           const magnet = isMagnet
             ? { offsetX: Math.random() * (TILE_WIDTH - 20) }
             : null;
@@ -118,6 +118,7 @@ const App = () => {
     setLives(3);
     setGameTime(0);
     setHomePageKey((prev) => prev + 1);
+    setMagnetActive(false);
   };
 
   const goToHome = () => {
@@ -174,7 +175,6 @@ const App = () => {
                     style={{
                       top: tile.top - 16 + (coin.magnetOffsetY || 0),
                       left: tile.left + coin.offsetX + 6,
-                      // transition: magnetActive ? "all 0.4s ease-in" : "none",
                     }}
                   />
                 )

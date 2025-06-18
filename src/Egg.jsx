@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useRef } from "react";
 import { playSound } from "./Sound";
+import { motion } from "framer-motion";
 
 const EGG_WIDTH = 50;
 const EGG_HEIGHT = 50;
@@ -27,10 +28,20 @@ const Egg = ({
   const [velocityY, setVelocityY] = useState(0);
   const [lastTileIndex, setLastTileIndex] = useState(null);
   const [isJumpingFromSharp, setIsJumpingFromSharp] = useState(false);
+  const [blink, setBlink] = useState(false);
+  const [lives, setLocalLives] = useState(3); // local copy for visuals
 
   useEffect(() => {
     setEggPos({ x, y });
   }, [x, y]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBlink(true);
+      setTimeout(() => setBlink(false), 200);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -54,19 +65,18 @@ const Egg = ({
         if (tile.isSharp && currentTileIndex !== lastTileIndex) {
           playSound("sharp");
           setIsJumpingFromSharp(true);
-          setVelocityY(-10);
-          setTimeout(() => setIsJumpingFromSharp(false), 300);
+          setVelocityY(-5);
+          setTimeout(() => setIsJumpingFromSharp(false), 200);
 
           setLives((prev) => {
-            if (prev > 1) return prev - 1;
-            else {
-              if (!hasPlayedGameOverSound.current) {
-                playSound("gameover");
-                hasPlayedGameOverSound.current = true;
-              }
+            const newVal = prev > 1 ? prev - 1 : 0;
+            setLocalLives(newVal);
+            if (newVal === 0 && !hasPlayedGameOverSound.current) {
+              playSound("gameover");
+              hasPlayedGameOverSound.current = true;
               setGameOver(true);
-              return 0;
             }
+            return newVal;
           });
         } else {
           setY(tile.top - EGG_HEIGHT);
@@ -74,24 +84,21 @@ const Egg = ({
         }
         setLastTileIndex(currentTileIndex);
       } else {
-        const baseGravity = 0.05; // even slower start
-        const maxGravity = 0.3; // gentle max gravity
-        const scalingFactor = 0.0005; // much slower ramp-up
+        const baseGravity = 0.05;
+        const maxGravity = 0.3;
+        const scalingFactor = 0.0002;
 
         const gravity =
           baseGravity +
           (Math.log(1 + gameTime * scalingFactor) / Math.log(10)) *
             (maxGravity - baseGravity);
 
-        const maxVelocity = 8; // optional: slightly lower for better control
-        const newVelocity = Math.min(velocityY + gravity, maxVelocity);
-
+        const newVelocity = Math.min(velocityY + gravity, 7);
         setVelocityY(newVelocity);
         setY((prevY) => prevY + newVelocity);
         setLastTileIndex(null);
       }
 
-      // Coin collision detection
       tilePositions.forEach((tile, tIndex) => {
         tile.coins.forEach((coin, cIndex) => {
           if (!coin) return;
@@ -102,7 +109,7 @@ const Egg = ({
           const distance = Math.sqrt(dx * dx + dy * dy);
 
           if (magnetActive) {
-            const pullStrength = 0.15; // Smaller value for smoother movement
+            const pullStrength = 0.15;
             const thresholdDistance = 120;
 
             if (distance < thresholdDistance) {
@@ -130,14 +137,14 @@ const Egg = ({
 
               updateTilePositions(updatedTilePositions);
 
-              const newCoinX = tile.left + tile.coins[cIndex].offsetX + 6;
-              const newCoinY = tile.top - 16 + tile.coins[cIndex].magnetOffsetY;
+              const newCoinX = tile.left + newOffsetX + 6;
+              const newCoinY = tile.top - 16 + newOffsetY;
 
               const newDist = Math.sqrt(
                 (eggCenterX - newCoinX) ** 2 + (eggCenterY - newCoinY) ** 2
               );
 
-              if (newDist < 100) {
+              if (newDist < 600) {
                 playSound("coin");
                 onCoinCollision(tIndex, cIndex);
                 const newTilePositions = [...tilePositions];
@@ -221,24 +228,57 @@ const Egg = ({
   return (
     <div
       className="absolute transition-transform duration-75 ease-out"
-      style={{
-        left: x,
-        top: y,
-        transform: `rotate(${rotation}deg)`,
-      }}
+      style={{ left: x, top: y, transform: `rotate(${rotation}deg)` }}
     >
       {magnetActive && (
-        <div
-          className="absolute w-[15vw] h-[15vw] max-w-[60px] max-h-[60px] border-2 border-blue-500 rounded-full animate-pulse"
-          style={{ top: -5, left: -5 }}
-        ></div>
+        <div className="absolute w-[15vw] h-[15vw] max-w-[60px] max-h-[60px] border-2 border-blue-500 rounded-full animate-pulse" style={{ top: -5, left: -5 }} />
       )}
 
-      <div className="relative w-[12vw] h-[12vw] max-w-[50px] max-h-[50px] rounded-full bg-gradient-to-r from-orange-500 to-green-500 shadow-md">
-        <div className="absolute w-[1.5vw] h-[1.5vw] max-w-[7px] max-h-[7px] bg-black rounded-full top-[30%] left-[25%]"></div>
-        <div className="absolute w-[1.5vw] h-[1.5vw] max-w-[7px] max-h-[7px] bg-black rounded-full top-[30%] right-[25%]"></div>
-        <div className="absolute w-[4vw] h-[3vw] max-w-[20px] max-h-[15px] border-b-4 border-black rounded-b-full bottom-[25%] left-1/2 transform -translate-x-1/2"></div>
-      </div>
+      <motion.div
+        animate={{ rotate: [0, 2, -2, 2, 0] }}
+        transition={{ repeat: Infinity, duration: 1 }}
+        className="relative w-[12vw] h-[12vw] max-w-[50px] max-h-[50px] rounded-full 
+                   bg-gradient-to-br from-yellow-300 via-amber-200 to-yellow-400 
+                   shadow-xl border-[1px] border-yellow-500"
+      >
+        {/* Glossy Highlight */}
+        <div className="absolute top-1 left-1 w-[50%] h-[40%] 
+                        bg-white opacity-20 rounded-full blur-sm" />
+
+        {/* Inner Glow */}
+        <div className="absolute inset-0 rounded-full 
+                        bg-gradient-radial from-transparent via-white/20 to-transparent 
+                        opacity-30" />
+
+        {/* Eyes */}
+        <div
+          className={`absolute w-[1.5vw] h-[1.5vw] max-w-[7px] max-h-[7px] bg-black rounded-full 
+                      top-[30%] left-[25%] ${blink ? "scale-y-[0.1]" : ""} transition-all duration-200`}
+        />
+        <div
+          className={`absolute w-[1.5vw] h-[1.5vw] max-w-[7px] max-h-[7px] bg-black rounded-full 
+                      top-[30%] right-[25%] ${blink ? "scale-y-[0.1]" : ""} transition-all duration-200`}
+        />
+
+        {/* Smile */}
+        <div className="absolute w-[4vw] h-[3vw] max-w-[20px] max-h-[15px] 
+                        border-b-[2.5px] border-black rounded-b-full 
+                        bottom-[25%] left-1/2 transform -translate-x-1/2" />
+
+        {/* Crack Line */}
+  {lives <= 1 && (
+  <>
+    {/* Central jagged crack */}
+    <div className="absolute w-[2px] h-[8%] bg-black top-[35%] left-[50%] rotate-[15deg]" />
+    <div className="absolute w-[2px] h-[8%] bg-black top-[40%] left-[52%] rotate-[-15deg]" />
+    <div className="absolute w-[2px] h-[8%] bg-black top-[45%] left-[50%] rotate-[15deg]" />
+    <div className="absolute w-[2px] h-[8%] bg-black top-[50%] left-[52%] rotate-[-15deg]" />
+    <div className="absolute w-[2px] h-[8%] bg-black top-[55%] left-[50%] rotate-[10deg]" />
+  </>
+)}
+
+
+      </motion.div>
     </div>
   );
 };
