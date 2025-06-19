@@ -1,6 +1,6 @@
 # 🥚 Happy Egg
 
-**Built with React.js + Tailwind CSS**
+**Built with React.js**
 
 A fun and casual physics-based game where you guide a happy egg as it bounces on moving tiles, avoids sharp spikes, and collects coins — all while staying alive through 3 eggy lives!
 
@@ -34,7 +34,7 @@ A fun and casual physics-based game where you guide a happy egg as it bounces on
 ### Installation
 
 ```bash
-git clone https://github.com/mafyr/HappyEgg.git
+git clone https://github.com/MAhsanDeveloper/HappyEgg.git
 cd HappyEgg
 npm install
 npm run dev
