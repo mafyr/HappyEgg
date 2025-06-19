@@ -72,7 +72,7 @@ const HomePage = ({ onStart }) => {
           />
         </motion.div>
 
-        <div className="font-bold text-orange-600 text-xl sm:text-2xl">
+        <div className="font-bold text-orange-600 text-lg sm:text-2xl">
           ( DESKTOP VERSION ONLY )
         </div>
       </div>

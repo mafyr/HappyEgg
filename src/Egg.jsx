@@ -79,7 +79,7 @@ const Egg = ({
             return newVal;
           });
         } else {
-          setY(tile.top - EGG_HEIGHT);
+          setY(Math.max(0, tile.top - EGG_HEIGHT));
           setVelocityY(0);
         }
         setLastTileIndex(currentTileIndex);
@@ -95,7 +95,11 @@ const Egg = ({
 
         const newVelocity = Math.min(velocityY + gravity, 7);
         setVelocityY(newVelocity);
-        setY((prevY) => prevY + newVelocity);
+       setY((prevY) => {
+  const newY = prevY + newVelocity;
+  return Math.max(0, newY); // prevents going above top
+});
+
         setLastTileIndex(null);
       }
 
